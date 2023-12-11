@@ -1,7 +1,20 @@
 from django.db import models
 
 import datetime
+from django.db import models
+from django.contrib.auth.models import AbstractUser
+from django.db import models
+# Create your models here.
 
+class CustomUser(AbstractUser):
+    email = models.EmailField(unique=True)
+
+    # Add custom fields here, if needed
+
+    def __str__(self):
+        return self.username
+        
+        
 class Student(models.Model):
     user = models.ForeignKey("CustomUser",blank=False, null=False,on_delete=models.CASCADE,related_name="user")
     standard = models.ForeignKey("Standard",blank=False, null= False, on_delete=models.CASCADE,related_name="standard")
