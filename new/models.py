@@ -13,21 +13,7 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.username
-        
-        
-class Student(models.Model):
-    user = models.ForeignKey("CustomUser",blank=False, null=False,on_delete=models.CASCADE,related_name="user")
-    standard = models.ForeignKey("Standard",blank=False, null= False, on_delete=models.CASCADE,related_name="standard")
-    course = models.ForeignKey("Course",blank=False, null= False, on_delete=models.CASCADE,related_name="course")
-
-
-    ...
-
-class Teacher(models.Model):
-    user  = models.ForeignKey("CustomUser",blank=False, null= False, on_delete=models.CASCADE,related_name="user")
-    subject =models.OneToOneField("Subject",blank=False, null= False, on_delete=models.CASCADE,related_name="subject")
-
-    ...
+    
 
 class Standard(models.Model):
     CHOICES =[
@@ -43,8 +29,6 @@ class Standard(models.Model):
     duration  = models.DurationField(datetime.timedelta(minutes=30)
 )
 
-    ...
-
 
 class Course(models.Model):
     CHOICES =[
@@ -57,7 +41,7 @@ class Course(models.Model):
         ("CMP","COMPUTER")
     ]
     course_name  = models.TextField(choices=CHOICES,max_length=3)
-    ...
+
 
 class Subject(models.Model):
 
@@ -69,8 +53,16 @@ class Subject(models.Model):
         ("SCE","SCIENCE"),
         ("HIS","HISTORY"),
         ("CMP","COMPUTER")]
-    course = models.ForeignKey("Course",blank=False, null= False, on_delete=models.CASCADE,related_name="subject")
+    course = models.ForeignKey(Course,blank=False, null= False, on_delete=models.CASCADE,related_name="subject")
 
     sub_name = models.TextField(choices=CHOICES, max_length=3)
 
-    ...
+
+class Student(models.Model):
+    user = models.ForeignKey(CustomUser,blank=False, null=False,on_delete=models.CASCADE,related_name="user")
+    standard = models.ForeignKey(Standard,blank=False, null= False, on_delete=models.CASCADE,related_name="standard")
+    course = models.ForeignKey(Course,blank=False, null= False, on_delete=models.CASCADE,related_name="course")
+
+class Teacher(models.Model):
+    user  = models.ForeignKey(CustomUser,blank=False, null= False, on_delete=models.CASCADE,related_name="user")
+    subject =models.OneToOneField(Subject,blank=False, null= False, on_delete=models.CASCADE,related_name="subject")
