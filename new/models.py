@@ -1,10 +1,10 @@
 from django.db import models
-
+from django.core.validators import RegexValidator,MaxValueValidator
+from django.core.exceptions import ValidationError
 import datetime
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-# Create your models here.
 
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
@@ -17,52 +17,65 @@ class CustomUser(AbstractUser):
 
 class Standard(models.Model):
     CHOICES =[
-        ("IST","ENGLISH"),
-        ("2ND","URDU"),
-        ("3RD","HINDI"),
-        ("4TH","MATH"),
-        ("5TH","SCIENCE"),
-        ("6TH","HISTORY"),
-        ("7TH","COMPUTER")
+        ("PKG","PRE_KG"),
+        ("LKG","LKG"),
+        ("UKG","UKG"),
+        ("IST","First"),
+        ("2ND","Second"),
+        ("3RD","Third"),
+        ("4TH","Fourth"),
+        ("5TH","Fifth"),
+        ("6TH","Sixth"),
+        ("7TH","Seventh"),
+        ("8TH","Eighth"),
+        ("9TH","Nineth"),
+        ("10TH","Tenth"),
+        ("11TH","Eleventh"),
+        ("12TH","Twelth")
     ]
-    std_name = models.TextField(choices=CHOICES,max_length=3)
+    std_name = models.TextField(choices=CHOICES,max_length=5)
+    roll  = models.IntegerField(default=0,validators=[MaxValueValidator(50)])
     duration  = models.DurationField(datetime.timedelta(minutes=30)
 )
+    def __str__(self):
+        return self.std_name
 
 
-class Course(models.Model):
-    CHOICES =[
-        ("SME","ENGLISH"),
-        ("SMU","URDU"),
-        ("SMH","HINDI"),
-        ("SHE","MATH"),
-        ("SHH","SCIENCE"),
-        ("CME","HISTORY"),
-        ("CMP","COMPUTER")
-    ]
-    course_name  = models.TextField(choices=CHOICES,max_length=3)
-
+    
 
 class Subject(models.Model):
+    sub_name = models.TextField(max_length=50)
 
-    CHOICES =[
-        ("ENG","ENGLISH"),
-        ("URD","URDU"),
-        ("HND","HINDI"),
-        ("MTH","MATH"),
-        ("SCE","SCIENCE"),
-        ("HIS","HISTORY"),
-        ("CMP","COMPUTER")]
-    course = models.ForeignKey(Course,blank=False, null= False, on_delete=models.CASCADE,related_name="subject")
+    def __str__(self):
+        return self.sub_name
+    
+class Course(models.Model):
+    course_code = models.TextField(max_length=5,blank=False, null=False,validators=[RegexValidator(r"^[0-9]{3}[A-Z]{2}")])
+    course_name  = models.TextField(max_length=50,blank = False, null=False)
+    subject1 = models.ForeignKey(Subject,on_delete=models.CASCADE, null=False, blank=False,related_name="sub1_courses")
+    subject2  = models.ForeignKey(Subject,on_delete=models.CASCADE, null=False, blank=False,related_name="sub2_courses")
+    subject3 =  models.ForeignKey(Subject,on_delete=models.CASCADE, null=False, blank=False,related_name="sub3_courses")
 
-    sub_name = models.TextField(choices=CHOICES, max_length=3)
-
+    def __str__(self):
+        return self.course_code
+    
+    def clean(self):
+        if self.subject1==self.subject2 or self.subject1==self.subject3 or self.subject2 == self.subject3:
+            raise ValidationError("The three subjects should be different")
 
 class Student(models.Model):
-    user = models.ForeignKey(CustomUser,blank=False, null=False,on_delete=models.CASCADE,related_name="user")
-    standard = models.ForeignKey(Standard,blank=False, null= False, on_delete=models.CASCADE,related_name="standard")
+    user = models.ForeignKey(CustomUser,blank=False, null=False,on_delete=models.CASCADE,related_name="student")
+    standard = models.ManyToManyField(Standard)
     course = models.ForeignKey(Course,blank=False, null= False, on_delete=models.CASCADE,related_name="course")
 
+    def __str__(self):
+        return self.user.username
+    
 class Teacher(models.Model):
-    user  = models.ForeignKey(CustomUser,blank=False, null= False, on_delete=models.CASCADE,related_name="user")
-    subject =models.OneToOneField(Subject,blank=False, null= False, on_delete=models.CASCADE,related_name="subject")
+    user  = models.ForeignKey(CustomUser,blank=False, null= False, on_delete=models.CASCADE,related_name="teacher")
+    subject =models.ManyToManyField(Subject)
+    courses = models.ManyToManyField(Course)
+
+
+    def __str__(self):
+        return self.user.username
